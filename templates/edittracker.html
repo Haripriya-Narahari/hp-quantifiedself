@@ -1,0 +1,129 @@
+<html>
+	<head>
+		<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+		<script src="https://unpkg.com/vue-router@3.5.3/dist/vue-router.js"></script>
+		<script src="https://unpkg.com/vuex@2.0.0/dist/vuex.js"></script>
+		
+	</head>
+<body>
+	<div id="app">
+<h1> Hello [[ username ]] !! </h1>
+<br>
+<br>
+<label>Name</label>
+<input  type="text" v-model="tracker[0].trackername" name="trackername"  />
+<br>
+<br>
+<br>
+<label>Description</label>
+<br>
+<br>
+<textarea name="trackdesc" v-model="tracker[0].trackdesc" rows="3" cols="30"></textarea>
+<br>
+<br>
+<br>
+<label>Tracker type </label>
+<select name="tracktype" v-model="tracktype" v-on:change="selectOption">
+			<option value="Numerical" name="Numerical" >Numerical</option>
+			<option value="Text" name="Text">Text</option>
+			<option value="Time" name="Time">Time</option>
+			<option value="MCQ" name="MCQ" >MCQ</option>
+</select>
+<br>
+<br>
+<label v-show="MCQ">MCQ Values (Enter as comma separated)</label>
+<input type=" text" v-show="MCQ" v-model="MCQValues"/>
+<br><br>
+
+<button v-on:click="editTracker" >Submit</button>
+<br>
+
+<br>
+<br>
+<button v-on:click="dashboard">Dashboard</button>
+</div>
+
+</body>
+</html>
+
+<script>
+	new Vue( {
+	el:'#app',
+      data:{
+        username : '',
+		trackdate:  new Date().getFullYear() + '-' + new Date().getMonth() + '-' + new Date().getDate(),
+		trackid: 0,
+		tracker: [],
+		MCQ: false,
+		MCQValues: '',
+		tracktype: "",
+      },
+	  delimiters: ['[[', ']]'],
+ name:"EditTracker",
+  
+		created(){
+			this.username = sessionStorage.getItem("email");
+  		this.trackid = sessionStorage.getItem("trackid");
+		  let aut = sessionStorage.getItem("Token")
+			fetch('http://127.0.0.1:5000/api/tracker/'+this.trackid+'/edit', {
+                method: 'GET',
+                headers: {
+                  "Content-Type": "application/json", 
+				  'Authentication-Token' : aut,
+                },
+                
+            }).then(response => response.json())
+            .then(data =>{
+				this.tracker = data
+					//const str = this.tracker.tracktype[0]+this.tracker.tracktype[1]+this.tracker.tracktype[2]
+			
+			if(this.tracker[0].tracktype== "MCQ"){
+				this.tracktype = this.tracker[0].tracktype.substring(0,3)
+				this.MCQValues = this.tracker[0].tracktype.substring(3)
+				this.MCQ = true;
+			}
+			else{
+				this.tracktype = this.tracker[0].tracktype
+				this.MCQ = false;
+			}
+			
+			});
+			
+			},
+	
+		methods:{
+
+editTracker(){
+	let aut = sessionStorage.getItem("Token")
+	fetch('http://127.0.0.1:5000/api/tracker/'+this.trackid+'/edit', {
+		method: 'POST',
+		headers: {
+		  "Content-Type": "application/json", 
+		  'Authentication-Token' : aut,
+		},
+		body:JSON.stringify({trackername:this.tracker.trackername,username:this.tracker.username,trackdesc:this.tracker.trackdesc,tracktype:this.tracktype+this.MCQValues,trackdate:this.tracker.trackdate,trackid:this.trackid})
+		
+	}).then(response => response.json())
+	.then(data => {
+	  window.location.href = '/dashboard/'+this.username+'?auth_token='+aut
+  });
+},
+selectOption(){
+			if(this.tracktype=="MCQ"){
+				this.MCQ = true;
+			}
+			else{
+				this.MCQ = false;
+				this.MCQValues = '';
+			}
+		},
+
+		dashboard(){
+			let aut = sessionStorage.getItem("Token")
+            window.location.href =  '/dashboard/'+this.username+'?auth_token='+aut
+        }
+}
+	
+})
+
+</script>

@@ -1,0 +1,145 @@
+<html>
+	<head>
+		<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+		<script src="https://unpkg.com/vue-router@3.5.3/dist/vue-router.js"></script>
+		<script src="https://unpkg.com/vuex@2.0.0/dist/vuex.js"></script>
+	</head>
+<body>
+	<div id="app">
+<h1> Hi [[ username ]] !! </h1>
+<br>
+<br>
+<h3> Your progress <h3>
+  <img v-bind:src="'data:image/jpeg;base64,'+img" width="500" height="500"></img>
+  <p></p>
+
+<table id = "all-trackers">
+<tr>
+<th>Log date</th>
+<th>Value</th>
+<th>Notes</th>
+<th>        </th>
+<th>Actions</th>
+</tr>
+
+
+<tr v-for="log in logs" >
+	<td>[[ log.when ]]</td>
+	<td>[[ log.value]]</td>
+	<td>[[ log.notes]]</td>
+	<td></td>
+	<td><button v-on:click="editLog(log)"> Edit </button></td>
+	<td><button v-on:click="deleteLog(log,log.logid)"> Delete </button></td>
+
+</tr>
+</table>
+<br>
+<br>
+<button v-on:click="addLog()"> +Add log</button>
+<br>
+<br>
+<button v-on:click="exportcsv()">Export as CSV</button>
+<br>
+<br>
+		<button v-on:click="dashboard">Dashboard</button>
+	</div>
+</body>
+<br><br><br>
+<h4><a href="/login_user">Logout</a></h4>
+</html>
+<script>
+new Vue( {
+	el:'#app',
+      data:{
+        username : '',
+      	logs: [],
+        img: '',
+      },
+	  delimiters: ['[[', ']]'],
+ name:"LogBoard",
+  
+    beforeMount(){
+//         const user = sessionStorage.get("email")
+ this.username = sessionStorage.getItem("email");
+  
+ let aut = sessionStorage.getItem("Token")
+  let id = sessionStorage.getItem("trackid")
+  
+       fetch('http://127.0.0.1:5000/api/log/'+id, 
+      {
+            method: 'GET',
+            headers: {
+              "Content-Type": "application/json", 
+      'Authentication-Token' : aut,
+            },
+            
+        }).then(response => response.json()
+        ).then(data=> this.logs =data)
+
+        
+       fetch('/api/'+id+'/summary', 
+      {
+            method: 'GET',
+            headers: {
+              "Content-Type": "application/json", 
+      'Authentication-Token' : aut,
+            },
+            
+        }).then(response => response.json()
+        ).then(data=> this.img =data)
+        
+
+        
+    },
+	methods:{
+		deleteLog(log,id){
+			let aut = sessionStorage.getItem("Token")
+          fetch('http://127.0.0.1:5000/api/log/'+id+'/delete', {
+                method: 'POST',
+                headers: {
+                  "Content-Type": "application/json", 
+				  'Authentication-Token' : aut,
+                },
+				body:JSON.stringify({username:log.username,when:log.when,trackid:log.trackid, value:log.value, notes:log.notes, logid:log.logid})
+                
+                
+            }).then(response => response.json())
+            .then(data=> this.trackers =data);
+            window.location.reload();
+        },
+        editLog(log){
+            sessionStorage.setItem("logid" , log.logid)
+            let aut = sessionStorage.getItem("Token")
+            window.location.href = '/log/'+log.logid+'/edit?auth_token='+aut
+        },
+        addLog(){
+			let id = sessionStorage.getItem("trackid")
+      let aut = sessionStorage.getItem("Token")
+            sessionStorage.setItem("trackid",id)
+			window.location.href = '/log/'+id+'/add?auth_token='+aut
+
+        },
+        dashboard(){
+          let aut = sessionStorage.getItem("Token")
+            window.location.href =  '/dashboard/'+this.username+'?auth_token='+aut
+        },
+        exportcsv(){
+            let aut = sessionStorage.getItem("Token")
+            let id = sessionStorage.getItem("trackid")
+            fetch('http://127.0.0.1:5000/api/log/csv/'+id, {
+                method: 'GET',
+                headers: {
+                  "Content-Type": "application/json", 
+				  'Authentication-Token' : aut,
+                },
+				
+                
+            }).then(window.alert("File exported!!"))
+
+        }
+        
+	}
+
+})
+
+</script>

@@ -1,0 +1,158 @@
+<html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+		<script src="https://unpkg.com/vue-router@3.5.3/dist/vue-router.js"></script>
+		<script src="https://unpkg.com/vuex@2.0.0/dist/vuex.js"></script>
+    </head>
+<body>
+<div id="app">
+<h1> Hello [[ username ]] !! </h1>
+<br>
+<br>
+<h1> Add a Log  </h1>
+<p>
+</p>
+<br>
+<label>When</label>
+<input type="date"  name="when" v-model="logdate">
+<br>
+<br>
+<br>
+<label v-show="Text">Enter Value</label>
+<input type="text" v-show="Text" v-model="TextValue"/>
+
+
+<label v-show="MCQ" >Select one value:</label>
+<div v-for="value in MCQValues">
+<input type="radio"  v-model="selectedMCQ" name="selectedMCQ" v-bind:value="value"> 
+<label>[[ value ]]</label>
+</div>
+
+<br>
+
+<label v-show="Time">Time taken </label>
+<select name="timevalue" v-model="TimeValue"  v-show="Time">
+			<option value="Less than 30 mins" name="Less than 30 mins" >Less than 30 mins</option>
+			<option value="1 - 3 hours" name="1 - 3 hours">1 - 3 hours</option>
+			<option value="3 - 5 hours" name="3 - 5 hours">3 - 5 hours</option>
+			<option value="More than 5 hours" name="More than 5 hours" >More than 5 hours</option>
+</select>
+
+<label v-show="Num">Enter Numerical Value</label>
+<input type="text" v-show="Num" v-model="NumValue"/>
+<br>
+<br>
+<label>Notes</label>
+<br>
+<br>
+<textarea name="notes" v-model="notes" rows="3" cols="30"></textarea>
+<br>
+<br>
+<br>
+<button v-on:click="addLog" >Submit</button>
+
+<br>
+<br>
+<br>
+<button v-on:click="dashboard">Dashboard</button>
+</div>
+<br>
+<br>
+</body>
+</html>
+
+<script>
+	new Vue( {
+	el:'#app',
+      data:{
+        username : '',
+		logdate:  new Date().getFullYear() + '-' + ('0'+(new Date().getMonth()+1)).slice(-2) + '-' + ('0'+(new Date().getDate())).slice(-2),
+		trackid: 0,
+		MCQ: false, Time: false, Text: false, Num: false, 
+        MCQValues: '', selectedMCQ: '', TextValue: "", TimeValue: '', notes: '',
+        tracker: [],
+        tracktype : '',
+        NumValue: '', logvalue: '', when: '',
+
+      },
+	  delimiters: ['[[', ']]'],
+ name:"AddLog",
+  
+		created(){
+			this.username = sessionStorage.getItem("email");
+  		this.trackid = sessionStorage.getItem("trackid");
+		  let aut = sessionStorage.getItem("Token")
+			fetch('http://127.0.0.1:5000/api/tracker/'+this.trackid+'/edit', {
+                method: 'GET',
+                headers: {
+                  "Content-Type": "application/json", 
+				  'Authentication-Token' : aut,
+                },
+                
+            }).then(response => response.json())
+            .then(data =>{
+				this.tracker = data
+				this.tracker = this.tracker[0]
+					const str = this.tracker.tracktype[0]+this.tracker.tracktype[1]+this.tracker.tracktype[2]
+			
+			if(str== "MCQ"){
+				this.tracktype = this.tracker.tracktype.substring(0,3)
+				this.MCQValues = this.tracker.tracktype.substring(3).split(',')
+				this.MCQ = true; this.Text = false; this.Time = false; this.Num = false;
+			}
+			else if(this.tracker.tracktype == "Text"){
+				this.tracktype = this.tracker.tracktype; 
+                this.Text = true; this.MCQ = false; this.Time = false; this.Num = false;
+			} 
+            else if(this.tracker.tracktype == "Numerical"){
+                this.tracktype = this.tracker.tracktype
+                this.Text = false; this.MCQ = false; this.Time = false; this.Num = true;
+            }
+            else{
+                this.tracktype = this.tracker.tracktype
+                this.Text = false; this.MCQ = false; this.Time = true; this.Num = false;
+            }
+			
+			});
+			
+			},
+	
+		methods:{
+addLog(){
+    let aut = sessionStorage.getItem("Token")
+    if(this.MCQ){
+        this.logvalue=this.selectedMCQ
+    }
+    else if(this.Num){
+        this.logvalue=this.NumValue
+    }
+    else if(this.Text){
+        this.logvalue = this.TextValue  
+    }
+    else if(this.Time){
+        this.logvalue = this.TimeValue
+    }
+
+	fetch('http://127.0.0.1:5000/api/log/'+this.trackid+'/add', {
+		method: 'POST',
+		headers: {
+		  "Content-Type": "application/json", 
+		  'Authentication-Token' : aut,
+		},
+		body:JSON.stringify({username:this.tracker.username,when:this.logdate,trackid:this.trackid, value:this.logvalue, notes:this.notes})
+		
+	}).then(response => response.json())
+	.then(data => {
+	  window.location.href = '/dashboard/'+this.username+'?auth_token='+aut
+  });
+
+},
+dashboard(){
+	let aut = sessionStorage.getItem("Token")
+            window.location.href =  '/dashboard/'+this.username+'?auth_token='+aut
+        }
+}
+	
+})
+
+</script>

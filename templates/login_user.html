@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-router@3.5.3/dist/vue-router.js"></script>
+    <script src="https://unpkg.com/vuex@2.0.0/dist/vuex.js"></script>
+    <link rel="shortcut icon" href="#" />
+    
+
+</head>
+
+<h1 style="text-align:center"> GetTracking </h1>
+<div id="app">
+
+<label style="margin-left: 70px; margin-right: auto; font-size: large; font-family:'Lucida Sans'; font-weight: bold;">    Username</label>
+<input  type="text" name="email" v-model="email" style="background-color:hsla(190, 100%, 64%, 0.5);margin-left: 100px; margin-right: auto;  " class="dotted" />
+<br>
+<br>
+<br>
+<label style="margin-left: 70px; margin-right: auto; font-size: large; font-family:'Lucida Sans'; font-weight: bold;">     Password     </label>
+<input  type="password" name="password" v-model="password" style="background-color:hsla(190, 100%, 64%, 0.5); margin-left: 100px; margin-right: auto; " class="dotted"/>
+<br>
+<br>
+<br>
+<button  v-on:click="storeToken" style="margin-left: 250px; margin-right: auto; height:30px; width:60px  ;background-color: rgb(8, 3, 53); 
+color: rgb(239, 238, 248);  ">Login</button>
+
+<br>
+
+<br>
+<br>
+</form>
+</div>
+<h4 ><a href="/newuser">+New User? Click here</a></h4>
+<br>
+<br>
+</html>
+
+
+<script>
+  new Vue({
+      el:'#app',
+      data:{
+        email:'',
+        password:'',
+        trackers: [],
+
+      },
+      created(){
+        sessionStorage.clear()
+      },
+      methods: {
+        storeToken(){
+          fetch('http://localhost:5000/login?include_auth_token', {
+                method: 'POST',
+                //crossDomain: true,
+                headers: {
+                  "Content-Type": "application/json", 
+                  "Access-Control-Allow-Origin": "*",
+                },
+                body:JSON.stringify({'username':this.email, 'password':this.password})
+                
+            }).then(response => response.json())
+            .then(data => {
+              console.log(data)
+              sessionStorage.setItem('Token',data['response']['user']['authentication_token'])
+              sessionStorage.setItem('email',this.email)
+              window.location.href = '/dashboard/'+this.email+'?auth_token='+data['response']['user']['authentication_token']
+          }).catch(error => console.log(error, 'error'))
+        },
+
+       
+      },
+      
+  
+  })
+</script>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-router@3.5.3/dist/vue-router.js"></script>
+    <script src="https://unpkg.com/vuex@2.0.0/dist/vuex.js"></script>
+<style>
+p.dotted {border-style: dotted;}
+</style>
+</head>
+<body>
+    <div id="app">
+<h1 style="text-align:center"> GetTracking - New User </h1>
+<br>
+<label style="margin-left: 70px; margin-right: auto; font-size: large; font-family:'Lucida Sans'; font-weight: bold;">Enter UserID</label>
+<input type="text" name="username" v-model="username" style="background-color:hsla(190, 100%, 64%, 0.5);margin-left: 100px; margin-right: auto;  " class="dotted" />
+<br>
+<br>
+<br>
+<label style="margin-left: 60px; margin-right: auto; font-size: large; font-family:'Lucida Sans'; font-weight: bold;">Enter Email ID</label>
+<input  type="text" name="usertitle" v-model="usertitle" style="background-color:hsla(190, 100%, 64%, 0.5);margin-left: 100px; margin-right: auto;  " class="dotted" />
+<br>
+<br>
+<br>
+<label style="margin-left: 50px; margin-right: auto; font-size: large; font-family:'Lucida Sans'; font-weight: bold;">Enter Password </label>
+<input  type="password" name="password" v-model="password" style="background-color:hsla(190, 100%, 64%, 0.5);margin-left: 100px; margin-right: auto;  " class="dotted"/>
+<br>
+
+<br>
+<br>
+
+<button  v-on:click="addUser" style="margin-left: 250px; margin-right: auto; height:30px; width:80px  ;background-color: rgb(8, 3, 53); 
+color: rgb(239, 238, 248);">Add User</button>
+<br>
+</div>
+<br>
+<br>
+
+</body>
+</html>
+
+<script>
+     new Vue({
+      el:'#app',
+      data:{
+        username:'',
+        password:'',
+        usertitle:'',
+
+      },
+      created(){
+        sessionStorage.clear()
+      },
+      
+      methods: {
+        addUser(){
+          fetch('http://localhost:5000/api/newuser', {
+                method: 'POST',
+                headers: {
+                  "Content-Type": "application/json", 
+                },
+                body:JSON.stringify({username:this.username, password:this.password, usertitle:this.usertitle})
+                
+            }).then(response => response.json()
+            ).then(data => {
+                window.location.href = '/login_user'
+            })
+
+            
+      },
+    }
+  
+  })
+</script>

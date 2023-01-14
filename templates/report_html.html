@@ -1,0 +1,39 @@
+<html>
+    <head>
+        <style>
+            body {
+              font-family: "Courier New", Courier, monospace;
+            }
+            th, td {
+  border-bottom: 1px solid rgb(219, 167, 167);
+}
+
+            </style>
+        <title>Monthly Report</title>
+    </head>
+    <body>
+        <h2>Hi {{name}} !!</h2>
+        <h4> This your monthly report summary!!</h4>
+        <br>
+        {% set count = namespace(value=0) %}
+        {% for datum in data %}
+        {{ datum }}
+        <br>
+        <hr style="height:2px;border-width:0;color:rgb(71, 34, 57);background-color:rgb(71, 34, 57)">
+        <br>
+        
+        <table>
+            <h3><tr> <td>When</td> <td></td>  <td> Value </td> <td></td> <td ></td> <td>  Notes </td></tr></h3>
+            
+            <tr></tr>
+            {% for val in data[datum] %}
+            <tr> <td>{{ val[5]}}</td> <td></td>  <td> {{ val[3]}} </td> <td></td>  <td></td> <td>  {{val[4]}} </td></tr>
+
+            {% endfor %}
+        </table>
+        <img src="data:image/jpeg;base64, {{ img[count.value] }}" />
+        {% set count.value = count.value + 1 %}
+        <br>
+        {% endfor %}
+    </body>
+</html>
